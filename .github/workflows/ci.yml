@@ -1,0 +1,27 @@
+name: ci
+on:
+  push:
+    branches: [main]
+  pull_request:
+jobs:
+  yaml:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install pyyaml
+      - name: Validate sucker yaml
+        run: |
+          python - << 'PY'
+          from pathlib import Path
+          import yaml
+          files = list(Path('suckers').glob('*.yaml'))
+          assert files, 'no suckers'
+          for p in files:
+              d = yaml.safe_load(p.read_text())
+              assert d.get('sucker') or d.get('name'), p
+              assert d.get('tentacle'), p
+              print('ok', d.get('sucker') or d.get('name'))
+          PY
